@@ -3,6 +3,7 @@ import glob
 import numpy as np
 import datetime
 
+
 # 電力　
 date_list = []
 ave_power_list = []
