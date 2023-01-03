@@ -7,6 +7,7 @@ import datetime
 # 電力　
 date_list = []
 ave_power_list = []
+week_name_list = []
 
 # csv呼び出し、必要な行と列の抽出
 for i in glob.glob("*_power_usage*"):
@@ -15,7 +16,7 @@ for i in glob.glob("*_power_usage*"):
     
     # date_list作成
     df["DATE"] = pd.to_datetime(df["DATE"], errors="coerce") #csvを読み込むときにdatetimeにできなかったのでここで行う
-    date_list.append(df.iat[0,0])
+    date_list.append(df.iat[0,0]) # iatで任意の位置を取得
     
     # 1日の平均を計算してave_result_list作成
     df['当日実績(万kW)'] = df['当日実績(万kW)'].astype(int) # '当日実績(万kW)'を文字列から数値へ変換
@@ -36,55 +37,36 @@ print(df_ave_power_temp)
 
 import matplotlib.pyplot as plt
 import japanize_matplotlib
+from matplotlib.dates import MO, TU, WE, TH, FR, SA, SU
+import matplotlib.dates as mdates
 
-# # df_ave_power_temp = px.data.stocks()
 df_ave_power_temp = df_ave_power_temp.set_index('DATE')
 
 fig, ax1 = plt.subplots()
-ax2 = ax1.twinx()
+ax2 = ax1.twinx() # 二つのグラフを書く指令
 
-ax1.plot(df_ave_power_temp["AVE_TEMP"])
-# ax2.bar(df_ave_power_temp["DATE"], height=df_ave_power_temp["AVE_POWER"])
-ax2.bar(df_ave_power_temp.index, height=df_ave_power_temp["AVE_POWER"])
+# 折れ線グラフを出力
+ax1.plot(df_ave_power_temp["AVE_TEMP"], linestyle="solid",color="b")
+ax1.set_ylabel('AVE_TEMP')
+
+# 棒グラフを出力
+ax2.bar(df_ave_power_temp.index, height=df_ave_power_temp["AVE_POWER"], align="center", color="lightblue", linewidth=0)
+ax2.set_ylabel('AVE_POWER')
+ax2.set_ylim(1200,2200) # Y軸の目盛指定
+
+# 時間軸目盛を月曜日のみ表示
+locator = mdates.WeekdayLocator(byweekday=(MO))
+ax1.xaxis.set_major_locator(locator)
+ax1.grid(axis='x')
+ax1.set_xlabel('DATE (tick_grid=monday)')
+
+# グラフの見せ方調整
+ax1.set_zorder(2) # 線グラフax1を再前面へ
+ax2.set_zorder(1)
+ax1.patch.set_alpha(0) # 線グラフax1のバックの透過性
+plt.title('2022年2月の気温と電力')
+
+# グラフをpngに保存
+plt.savefig("temp_power_graph.png")
+
 plt.show()
-
-
-# # # ax1.bar(df_ave_power_temp.index,df_ave_power_temp["AVE_POWER"],color="lightblue",label="A")
-# ax1.bar(df_ave_power_temp.index, df_ave_power_temp["AVE_POWER"],color="lightblue",label="A")
-# ax2.plot(df_ave_power_temp.index, df_ave_power_temp["AVE_TEMP"],linestyle="solid",color="k",marker="^",label="B")
-
-# ax1.set_ylim(0,10)
-# ax2.set_ylim(100,110)
-# handler1, label1 = ax1.get_legend_handles_labels()
-# handler2, label2 = ax2.get_legend_handles_labels()
-# ax1.legend(handler1+handler2,label1+label2,borderaxespad=0)
-# ax1.grid(True)
-# plt.show()
-
-# # 2軸グラフの本体設定
-# # ax1.plot(df_ave_power_temp.to_pydatetime(), df["AVE_TEMP"], color=cm.Set1.colors[1], label="AVE_TEMP(℃)")
-# ax1.plot(df_ave_power_temp["AVE_TEMP"], color=cm.Set1.colors[1], label="AVE_TEMP(℃)")
-# # ax2.bar(df_ave_power_temp.to_pydatetime(), df["AVE_POWER"], color=cm.Set1.colors[0], alpha=0.4, width=25, label="AVE_POWER((万kW))")
-# ax2.bar(df_ave_power_temp["AVE_POWER"], heightcolor=cm.Set1.colors[0], alpha=0.4, width=25, label="AVE_POWER((万kW))")
-# plt.tick_params(labelsize = 10) #目盛線ラベルのフォントサイズ
-
-# #グラフタイトルを付ける
-# plt.title("2020年各月の平均気温と降水量の推移", fontsize=15)
-# # 凡例の表示のため、handler1と2にはグラフオブジェクトのリスト情報が入る
-# # label1と2には、凡例用に各labelのリスト情報が入る
-# handler1, label1 = ax1.get_legend_handles_labels()
-# handler2, label2 = ax2.get_legend_handles_labels()
-
-# # 凡例をまとめて出力する
-# ax1.legend(handler1 + handler2, label1 + label2, loc=2, borderaxespad=0.)
-# temperature_max = 10 + max(df["月平均気温"])
-# rainfall_max = 1.2 * max(df["月間降水量"])
-# ax1.set_ylim([0, temperature_max])
-# ax2.set_ylim([0, rainfall_max])
-
-# plt.show()
-
-# # # # csvへ出力
-# # # # df_ave_power = pd.DataFrame({'DATE':date_list,'AVE_POWER':ave_power_list})
-# # # # print(df_ave_power)
-# # # # df_ave_power.to_csv('df_ave_power.csv',encoding='cp932', errors='ignore')
